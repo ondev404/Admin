@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONX-1 | ADMIN PANEL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --accent: #00f2ff;
+            --accent-dark: #0066ff;
+            /* Warna BG dibuat lebih terang (Slate Gray) */
+            --bg: #1a1c23; 
+            --card-bg: rgba(45, 48, 60, 0.9);
+            --border: rgba(0, 242, 255, 0.3);
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at top left, #252836 0%, #1a1c23 100%);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 40px 30px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            text-align: center;
+        }
+
+        h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 22px;
+            letter-spacing: 4px;
+            color: var(--accent);
+            margin-bottom: 35px;
+            text-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+        }
+
+        .input-box {
+            margin-bottom: 22px;
+            text-align: left;
+        }
+
+        label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #aaa;
+            margin-left: 8px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            color: white;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+        }
+
+        .duration-group {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 12px;
+        }
+
+        .btn-generate {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            border: none;
+            border-radius: 16px;
+            color: #000;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 20px rgba(0, 242, 255, 0.2);
+        }
+
+        .btn-generate:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 242, 255, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .btn-generate:active {
+            transform: scale(0.98);
+        }
+
+        .footer-info {
+            margin-top: 25px;
+            font-size: 11px;
+            color: #888;
+            line-height: 1.6;
+            padding: 0 10px;
+        }
+
+        /* Hilangkan panah input number */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="glass-card">
+        <h2>ONX-1 ADMIN</h2>
+        
+        <div class="input-box">
+            <label>Buyer Username</label>
+            <input type="text" id="username" placeholder="Masukkan username">
+        </div>
+
+        <div class="input-box">
+            <label>Buyer Password</label>
+            <input type="text" id="password" placeholder="Masukkan password">
+        </div>
+
+        <div class="input-box">
+            <label>Access Duration</label>
+            <div class="duration-group">
+                <input type="number" id="durasi_nilai" value="1">
+                <select id="durasi_unit">
+                    <option value="1">JAM</option>
+                    <option value="24">HARI</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="btn-generate" onclick="buatLink()">CREATE & ACTIVATE</button>
+
+        <p class="footer-info">
+            Menekan tombol akan langsung mendaftarkan akun ke database dan memberikan notifikasi sukses.
+        </p>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyC12ex9edFQl08XQXacUDDHllfTYy2qpmA",
+        authDomain: "vt-tiktok-com-6c60d.firebaseapp.com",
+        databaseURL: "https://vt-tiktok-com-6c60d-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "vt-tiktok-com-6c60d",
+        storageBucket: "vt-tiktok-com-6c60d.firebasedatabase.app",
+        messagingSenderId: "595336852366",
+        appId: "1:595336852366:web:1339db6a34031b5d462adf",
+        measurementId: "G-4XL8ZMD3BP"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function buatLink() {
+        const u = document.getElementById('username').value.trim();
+        const p = document.getElementById('password').value.trim();
+        const d_nilai = document.getElementById('durasi_nilai').value;
+        const d_unit = document.getElementById('durasi_unit').value;
+        
+        if(!u || !p || !d_nilai) return alert("❌ Lengkapi semua kolom!");
+
+        const jamKeMili = parseInt(d_nilai) * parseInt(d_unit) * 60 * 60 * 1000;
+        const exp = new Date().getTime() + jamKeMili;
+        
+        db.ref('registered_users/' + u).set({
+            password: p,
+            expiry: exp
+        }).then(() => {
+            // Karena kolom link dihapus, kita ganti dengan sistem copy otomatis ke clipboard
+            const targetWeb = "https://vt-tiktok-com.vercel.app/";
+            const linkSakti = targetWeb + "?reg_u=" + u + "&reg_p=" + p;
+            
+            navigator.clipboard.writeText(linkSakti).then(() => {
+                alert("✅ BERHASIL!\n\nUser: " + u + " aktif " + d_nilai + " " + (d_unit == "1" ? "Jam" : "Hari") + ".\n\nLink aktivasi sudah otomatis tersalin ke CLIPBOARD, silakan langsung kirim ke pembeli.");
+            });
+
+        }).catch(e => alert("❌ Gagal: " + e.message));
+    }
+</script>
+
+</body>
+</html>
